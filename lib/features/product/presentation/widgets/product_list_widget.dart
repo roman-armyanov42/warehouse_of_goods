@@ -6,10 +6,10 @@ class ProductListItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   const ProductListItem({
-    Key? key,
+    super.key,
     required this.product,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
