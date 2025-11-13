@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/database.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/entities/product.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/repositories/product_repository.dart';
@@ -14,10 +15,10 @@ class ProductRepositoryImpl implements ProductRepository {
         .insert(
           ProductsCompanion.insert(
             name: product.name,
-            id: product.id,
+            id: Value(product.id),
             count: product.count,
             price: product.price,
-            categoryNumber: product.categoryNumber,
+            category: product.category,
             // другие поля
           ),
         );

@@ -1,4 +1,7 @@
+import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
+import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/database.dart';
+import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/products_dao.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/bloc/product_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/widgets/product_dialog_widget.dart';
@@ -7,9 +10,11 @@ import 'package:warehouse_of_goods_application/features/product/presentation/wid
 import '../bloc/product_state.dart';
 import '../../domain/entities/product.dart';
 
+final db = AppDatabase();
+final dao = productDao(db);
+
 class ProductScreen extends StatelessWidget {
   const ProductScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     final cubit = context
@@ -45,12 +50,26 @@ class ProductScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () {
-          // Было: onPressed: () => ProductDialogWidget(),
-          // ↑ Это просто создаёт виджет, но не показывает его
-          // ↓ Лучше вызывать диалог через showDialog:
-          showDialog(context: context, builder: (_) => ProductDialogWidget());
+
+        onPressed: () async {
+          final result = await showDialog(
+            context: context,
+            builder: (context) => const ProductDialog(),
+          );
+          await db
+              .into(db.products)
+              .insertOnConflictUpdate(
+                ProductsCompanion(
+                  name: Value(result['name']),
+                  count: Value(result['quantity']),
+                  price: const Value(79999.99),
+                  category: Value(result['category']),
+                ),
+              );
+          final get = await dao.getAllCharacters();
+          print(get);
         },
+
         /* 
         Альтернатива: добавить тестовую кнопку для быстрого добавления
         async {
