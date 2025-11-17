@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/products_dao.dart';
 
 import '../../domain/entities/product.dart';
 import '../../domain/usecases/add_product.dart';
@@ -48,5 +49,24 @@ class ProductCubit extends Cubit<ProductState> {
   void setProducts(List<ProductEntity> products) {
     _products = products;
     emit(ProductLoaded(List.from(_products)));
+  }
+
+  Future<void> loadProductsFromDb(productDao dao) async {
+    emit(ProductLoading());
+    final result = await dao.getAllCharacters();
+    result.fold((failure) => emit(ProductError(failure.message)), (products) {
+      final list = products
+          .map(
+            (p) => ProductEntity(
+              id: p.id,
+              name: p.name,
+              count: p.count,
+              price: p.price,
+              category: p.category,
+            ),
+          )
+          .toList();
+      setProducts(list);
+    });
   }
 }

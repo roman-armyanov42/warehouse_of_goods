@@ -8,19 +8,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ProductsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 50,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
@@ -33,6 +20,19 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
     ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
   );
   static const VerificationMeta _countMeta = const VerificationMeta('count');
   @override
@@ -68,7 +68,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [name, id, count, price, category];
+  List<GeneratedColumn> get $columns => [id, name, count, price, category];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -81,6 +81,9 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -88,9 +91,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
-    }
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('count')) {
       context.handle(
@@ -125,13 +125,13 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   Product map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Product(
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
       )!,
       count: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -155,14 +155,14 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
 }
 
 class Product extends DataClass implements Insertable<Product> {
-  final String name;
   final int id;
+  final String name;
   final int count;
   final double price;
   final String category;
   const Product({
-    required this.name,
     required this.id,
+    required this.name,
     required this.count,
     required this.price,
     required this.category,
@@ -170,8 +170,8 @@ class Product extends DataClass implements Insertable<Product> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['name'] = Variable<String>(name);
     map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
     map['count'] = Variable<int>(count);
     map['price'] = Variable<double>(price);
     map['category'] = Variable<String>(category);
@@ -180,8 +180,8 @@ class Product extends DataClass implements Insertable<Product> {
 
   ProductsCompanion toCompanion(bool nullToAbsent) {
     return ProductsCompanion(
-      name: Value(name),
       id: Value(id),
+      name: Value(name),
       count: Value(count),
       price: Value(price),
       category: Value(category),
@@ -194,8 +194,8 @@ class Product extends DataClass implements Insertable<Product> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Product(
-      name: serializer.fromJson<String>(json['name']),
       id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
       count: serializer.fromJson<int>(json['count']),
       price: serializer.fromJson<double>(json['price']),
       category: serializer.fromJson<String>(json['category']),
@@ -205,8 +205,8 @@ class Product extends DataClass implements Insertable<Product> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'name': serializer.toJson<String>(name),
       'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
       'count': serializer.toJson<int>(count),
       'price': serializer.toJson<double>(price),
       'category': serializer.toJson<String>(category),
@@ -214,22 +214,22 @@ class Product extends DataClass implements Insertable<Product> {
   }
 
   Product copyWith({
-    String? name,
     int? id,
+    String? name,
     int? count,
     double? price,
     String? category,
   }) => Product(
-    name: name ?? this.name,
     id: id ?? this.id,
+    name: name ?? this.name,
     count: count ?? this.count,
     price: price ?? this.price,
     category: category ?? this.category,
   );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
-      name: data.name.present ? data.name.value : this.name,
       id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
       count: data.count.present ? data.count.value : this.count,
       price: data.price.present ? data.price.value : this.price,
       category: data.category.present ? data.category.value : this.category,
@@ -239,8 +239,8 @@ class Product extends DataClass implements Insertable<Product> {
   @override
   String toString() {
     return (StringBuffer('Product(')
-          ..write('name: $name, ')
           ..write('id: $id, ')
+          ..write('name: $name, ')
           ..write('count: $count, ')
           ..write('price: $price, ')
           ..write('category: $category')
@@ -249,34 +249,34 @@ class Product extends DataClass implements Insertable<Product> {
   }
 
   @override
-  int get hashCode => Object.hash(name, id, count, price, category);
+  int get hashCode => Object.hash(id, name, count, price, category);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Product &&
-          other.name == this.name &&
           other.id == this.id &&
+          other.name == this.name &&
           other.count == this.count &&
           other.price == this.price &&
           other.category == this.category);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
-  final Value<String> name;
   final Value<int> id;
+  final Value<String> name;
   final Value<int> count;
   final Value<double> price;
   final Value<String> category;
   const ProductsCompanion({
-    this.name = const Value.absent(),
     this.id = const Value.absent(),
+    this.name = const Value.absent(),
     this.count = const Value.absent(),
     this.price = const Value.absent(),
     this.category = const Value.absent(),
   });
   ProductsCompanion.insert({
-    required String name,
     this.id = const Value.absent(),
+    required String name,
     required int count,
     required double price,
     required String category,
@@ -285,15 +285,15 @@ class ProductsCompanion extends UpdateCompanion<Product> {
        price = Value(price),
        category = Value(category);
   static Insertable<Product> custom({
-    Expression<String>? name,
     Expression<int>? id,
+    Expression<String>? name,
     Expression<int>? count,
     Expression<double>? price,
     Expression<String>? category,
   }) {
     return RawValuesInsertable({
-      if (name != null) 'name': name,
       if (id != null) 'id': id,
+      if (name != null) 'name': name,
       if (count != null) 'count': count,
       if (price != null) 'price': price,
       if (category != null) 'category': category,
@@ -301,15 +301,15 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   }
 
   ProductsCompanion copyWith({
-    Value<String>? name,
     Value<int>? id,
+    Value<String>? name,
     Value<int>? count,
     Value<double>? price,
     Value<String>? category,
   }) {
     return ProductsCompanion(
-      name: name ?? this.name,
       id: id ?? this.id,
+      name: name ?? this.name,
       count: count ?? this.count,
       price: price ?? this.price,
       category: category ?? this.category,
@@ -319,11 +319,11 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
     }
     if (count.present) {
       map['count'] = Variable<int>(count.value);
@@ -340,8 +340,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   @override
   String toString() {
     return (StringBuffer('ProductsCompanion(')
-          ..write('name: $name, ')
           ..write('id: $id, ')
+          ..write('name: $name, ')
           ..write('count: $count, ')
           ..write('price: $price, ')
           ..write('category: $category')
@@ -363,16 +363,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 
 typedef $$ProductsTableCreateCompanionBuilder =
     ProductsCompanion Function({
-      required String name,
       Value<int> id,
+      required String name,
       required int count,
       required double price,
       required String category,
     });
 typedef $$ProductsTableUpdateCompanionBuilder =
     ProductsCompanion Function({
-      Value<String> name,
       Value<int> id,
+      Value<String> name,
       Value<int> count,
       Value<double> price,
       Value<String> category,
@@ -387,13 +387,13 @@ class $$ProductsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -422,13 +422,13 @@ class $$ProductsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -457,11 +457,11 @@ class $$ProductsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
   GeneratedColumn<int> get count =>
       $composableBuilder(column: $table.count, builder: (column) => column);
@@ -501,28 +501,28 @@ class $$ProductsTableTableManager
               $$ProductsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<String> name = const Value.absent(),
                 Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
                 Value<int> count = const Value.absent(),
                 Value<double> price = const Value.absent(),
                 Value<String> category = const Value.absent(),
               }) => ProductsCompanion(
-                name: name,
                 id: id,
+                name: name,
                 count: count,
                 price: price,
                 category: category,
               ),
           createCompanionCallback:
               ({
-                required String name,
                 Value<int> id = const Value.absent(),
+                required String name,
                 required int count,
                 required double price,
                 required String category,
               }) => ProductsCompanion.insert(
-                name: name,
                 id: id,
+                name: name,
                 count: count,
                 price: price,
                 category: category,
