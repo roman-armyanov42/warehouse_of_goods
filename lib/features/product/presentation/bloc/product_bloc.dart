@@ -9,12 +9,35 @@ import 'product_state.dart';
 class ProductCubit extends Cubit<ProductState> {
   final AddProduct addProductUseCase;
   final DeleteProduct deleteProductUseCase;
+  final productDao dao;
 
   // Список продуктов в Cubit
   List<ProductEntity> _products = [];
 
-  ProductCubit(this.addProductUseCase, this.deleteProductUseCase)
+  ProductCubit(this.addProductUseCase, this.deleteProductUseCase, this.dao)
     : super(ProductInitial());
+
+  Future<void> loadProducts() async {
+    emit(ProductLoading());
+
+    final result = await dao.getAllCharacters();
+
+    result.fold((failure) => emit(ProductError(failure.message)), (
+      productsFromDb,
+    ) {
+      final converted = productsFromDb.map((p) {
+        return ProductEntity(
+          id: p.id,
+          name: p.name,
+          count: p.count,
+          price: p.price,
+          category: p.category,
+        );
+      }).toList();
+
+      emit(ProductLoaded(converted));
+    });
+  }
 
   // Получить текущие продукты
   List<ProductEntity> get products => _products;
@@ -40,6 +63,7 @@ class ProductCubit extends Cubit<ProductState> {
       await deleteProductUseCase.call(id);
       _products.removeWhere((p) => p.id == id);
       emit(ProductLoaded(List.from(_products)));
+      await loadProducts();
     } catch (e) {
       emit(ProductError(e.toString()));
     }

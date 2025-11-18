@@ -7,10 +7,12 @@ import 'package:warehouse_of_goods_application/features/product/presentation/blo
 import 'package:warehouse_of_goods_application/features/product/presentation/pages/product_screen.dart';
 
 import 'features/product/data/datasources/remote/database/database.dart';
+import 'features/product/data/datasources/remote/database/products_dao.dart';
 
 void main() {
   // Инициализация базы данных
   final db = AppDatabase();
+  final dao = productDao(db);
 
   // Репозиторий
   final repository = ProductRepositoryImpl(db);
@@ -19,17 +21,19 @@ void main() {
   final addUseCase = AddProduct(repository);
   final deleteUseCase = DeleteProduct(repository);
 
-  runApp(MyApp(addUseCase: addUseCase, deleteUseCase: deleteUseCase));
+  runApp(MyApp(addUseCase: addUseCase, deleteUseCase: deleteUseCase, dao: dao));
 }
 
 class MyApp extends StatelessWidget {
   final AddProduct addUseCase;
   final DeleteProduct deleteUseCase;
+  final productDao dao;
 
   const MyApp({
     super.key,
     required this.addUseCase,
     required this.deleteUseCase,
+    required this.dao,
   });
 
   @override
@@ -38,7 +42,8 @@ class MyApp extends StatelessWidget {
       title: 'Склад товаров',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: BlocProvider(
-        create: (_) => ProductCubit(addUseCase, deleteUseCase),
+        create: (_) =>
+            ProductCubit(addUseCase, deleteUseCase, dao)..loadProducts(),
         child: const ProductScreen(),
       ),
     );
