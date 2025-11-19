@@ -28,9 +28,10 @@ class ProductCubit extends Cubit<ProductState> {
   Future<void> updateProduct(ProductEntity updated) async {
     try {
       emit(ProductLoading());
-      log("\n\n\nначало\n\n\n");
-
-      //тут выскакивает исключение
+      log("updated.id = ${updated.id}");
+      log("updated.name = ${updated.name}");
+      log("updated.count = ${updated.count}");
+      log("updated.category = ${updated.category}");
       await updateProductUseCase.call(updated);
 
       final index = _products.indexWhere((p) => p.id == updated.id);
@@ -61,7 +62,7 @@ class ProductCubit extends Cubit<ProductState> {
           category: p.category,
         );
       }).toList();
-
+      _products = converted;
       emit(ProductLoaded(converted));
     });
   }

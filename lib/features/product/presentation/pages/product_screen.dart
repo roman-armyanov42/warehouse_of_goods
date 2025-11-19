@@ -68,7 +68,6 @@ class ProductScreen extends StatelessWidget {
                       cubit.updateProduct(updated);
                     }
                   },
-                  // onEdit: () => print(object),
                 );
               },
             );

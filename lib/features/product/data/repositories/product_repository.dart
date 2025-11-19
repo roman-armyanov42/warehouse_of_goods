@@ -34,6 +34,7 @@ class ProductRepositoryImpl implements ProductRepository {
         .update(db.products)
         .replace(
           ProductsCompanion(
+            id: Value(product.id),
             name: Value(product.name),
             count: Value(product.count),
             category: Value(product.category),
