@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:warehouse_of_goods_application/features/product/domain/entities/product.dart';
 
 class ProductDialog extends StatefulWidget {
-  const ProductDialog({super.key});
+  final ProductEntity? product;
+
+  const ProductDialog({super.key, this.product});
 
   @override
   State<ProductDialog> createState() => _ProductDialogState();
@@ -15,6 +18,26 @@ class _ProductDialogState extends State<ProductDialog> {
   final _quantityController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    // Если редактирование — заполняем поля
+    if (widget.product != null) {
+      _nameController.text = widget.product!.name;
+      _categoryController.text = widget.product!.category;
+      _quantityController.text = widget.product!.count.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _categoryController.dispose();
+    _quantityController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -26,13 +49,18 @@ class _ProductDialogState extends State<ProductDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Добавить товар",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                widget.product == null
+                    ? "Добавить товар"
+                    : "Редактировать товар",
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
 
-              // Название
+              /// Название
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -44,7 +72,7 @@ class _ProductDialogState extends State<ProductDialog> {
               ),
               const SizedBox(height: 12),
 
-              // Категория
+              /// Категория
               TextFormField(
                 controller: _categoryController,
                 decoration: const InputDecoration(
@@ -56,7 +84,7 @@ class _ProductDialogState extends State<ProductDialog> {
               ),
               const SizedBox(height: 12),
 
-              // Количество
+              /// Количество
               TextFormField(
                 controller: _quantityController,
                 keyboardType: TextInputType.number,
@@ -78,27 +106,22 @@ class _ProductDialogState extends State<ProductDialog> {
 
               const SizedBox(height: 20),
 
-              // Кнопки
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => Navigator.pop(context),
                     child: const Text("Отмена"),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        final name = _nameController.text;
-                        final category = _categoryController.text;
-                        final quantity =
-                            int.tryParse(_quantityController.text) ?? 0;
-
-                        Navigator.of(context).pop({
-                          'name': name,
-                          'category': category,
-                          'quantity': quantity,
+                        Navigator.pop(context, {
+                          'name': _nameController.text,
+                          'category': _categoryController.text,
+                          'quantity':
+                              int.tryParse(_quantityController.text) ?? 0,
                         });
                       }
                     },

@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/products_dao.dart';
+import 'package:warehouse_of_goods_application/features/product/domain/usecases/update_product.dart';
 
 import '../../domain/entities/product.dart';
 import '../../domain/usecases/add_product.dart';
@@ -9,13 +12,38 @@ import 'product_state.dart';
 class ProductCubit extends Cubit<ProductState> {
   final AddProduct addProductUseCase;
   final DeleteProduct deleteProductUseCase;
+  final UpdateProduct updateProductUseCase;
   final productDao dao;
 
   // Список продуктов в Cubit
   List<ProductEntity> _products = [];
 
-  ProductCubit(this.addProductUseCase, this.deleteProductUseCase, this.dao)
-    : super(ProductInitial());
+  ProductCubit(
+    this.addProductUseCase,
+    this.deleteProductUseCase,
+    this.dao,
+    this.updateProductUseCase,
+  ) : super(ProductInitial());
+
+  Future<void> updateProduct(ProductEntity updated) async {
+    try {
+      emit(ProductLoading());
+      log("\n\n\nначало\n\n\n");
+
+      //тут выскакивает исключение
+      await updateProductUseCase.call(updated);
+
+      final index = _products.indexWhere((p) => p.id == updated.id);
+
+      if (index != -1) {
+        _products[index] = updated;
+      }
+
+      emit(ProductLoaded(List.from(_products)));
+    } catch (e) {
+      emit(ProductError(e.toString()));
+    }
+  }
 
   Future<void> loadProducts() async {
     emit(ProductLoading());
@@ -30,7 +58,6 @@ class ProductCubit extends Cubit<ProductState> {
           id: p.id,
           name: p.name,
           count: p.count,
-          price: p.price,
           category: p.category,
         );
       }).toList();
@@ -85,7 +112,6 @@ class ProductCubit extends Cubit<ProductState> {
               id: p.id,
               name: p.name,
               count: p.count,
-              price: p.price,
               category: p.category,
             ),
           )

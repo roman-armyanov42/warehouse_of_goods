@@ -52,6 +52,23 @@ class ProductScreen extends StatelessWidget {
 
                     print("Был удален объект:" + product.name);
                   },
+                  onEdit: () async {
+                    final result = await showDialog(
+                      context: context,
+                      builder: (_) => ProductDialog(product: product),
+                    );
+
+                    if (result != null) {
+                      final updated = product.copyWith(
+                        name: result['name'],
+                        count: result['quantity'],
+                        category: result['category'],
+                      );
+
+                      cubit.updateProduct(updated);
+                    }
+                  },
+                  // onEdit: () => print(object),
                 );
               },
             );
@@ -67,7 +84,7 @@ class ProductScreen extends StatelessWidget {
         onPressed: () async {
           final result = await showDialog(
             context: context,
-            builder: (context) => const ProductDialog(),
+            builder: (context) => const ProductDialog(product: null),
           );
 
           if (result == null) return;
@@ -78,7 +95,6 @@ class ProductScreen extends StatelessWidget {
                 ProductsCompanion(
                   name: Value(result['name']),
                   count: Value(result['quantity']),
-                  price: const Value(79999.99),
                   category: Value(result['category']),
                 ),
               );

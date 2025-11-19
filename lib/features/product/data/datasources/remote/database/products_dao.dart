@@ -29,4 +29,8 @@ class productDao extends DatabaseAccessor<AppDatabase> with _$productDaoMixin {
   Future<int> deleteAllCharacters() async {
     return delete(products).go();
   }
+
+  Future<void> updateProduct(ProductsCompanion companion) async {
+    await update(products).replace(companion);
+  }
 }

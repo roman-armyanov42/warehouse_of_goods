@@ -17,7 +17,6 @@ class ProductRepositoryImpl implements ProductRepository {
             name: product.name,
             id: Value(product.id),
             count: product.count,
-            price: product.price,
             category: product.category,
             // другие поля
           ),
@@ -27,5 +26,18 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<void> deleteProduct(int id) async {
     await (db.delete(db.products)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
+  @override
+  Future<void> updateProduct(ProductEntity product) async {
+    await db
+        .update(db.products)
+        .replace(
+          ProductsCompanion(
+            name: Value(product.name),
+            count: Value(product.count),
+            category: Value(product.category),
+          ),
+        );
   }
 }

@@ -43,15 +43,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _priceMeta = const VerificationMeta('price');
-  @override
-  late final GeneratedColumn<double> price = GeneratedColumn<double>(
-    'price',
-    aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
-  );
   static const VerificationMeta _categoryMeta = const VerificationMeta(
     'category',
   );
@@ -68,7 +59,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, count, price, category];
+  List<GeneratedColumn> get $columns => [id, name, count, category];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -100,14 +91,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
     } else if (isInserting) {
       context.missing(_countMeta);
     }
-    if (data.containsKey('price')) {
-      context.handle(
-        _priceMeta,
-        price.isAcceptableOrUnknown(data['price']!, _priceMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_priceMeta);
-    }
     if (data.containsKey('category')) {
       context.handle(
         _categoryMeta,
@@ -137,10 +120,6 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         DriftSqlType.int,
         data['${effectivePrefix}count'],
       )!,
-      price: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}price'],
-      )!,
       category: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}category'],
@@ -158,13 +137,11 @@ class Product extends DataClass implements Insertable<Product> {
   final int id;
   final String name;
   final int count;
-  final double price;
   final String category;
   const Product({
     required this.id,
     required this.name,
     required this.count,
-    required this.price,
     required this.category,
   });
   @override
@@ -173,7 +150,6 @@ class Product extends DataClass implements Insertable<Product> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['count'] = Variable<int>(count);
-    map['price'] = Variable<double>(price);
     map['category'] = Variable<String>(category);
     return map;
   }
@@ -183,7 +159,6 @@ class Product extends DataClass implements Insertable<Product> {
       id: Value(id),
       name: Value(name),
       count: Value(count),
-      price: Value(price),
       category: Value(category),
     );
   }
@@ -197,7 +172,6 @@ class Product extends DataClass implements Insertable<Product> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       count: serializer.fromJson<int>(json['count']),
-      price: serializer.fromJson<double>(json['price']),
       category: serializer.fromJson<String>(json['category']),
     );
   }
@@ -208,30 +182,22 @@ class Product extends DataClass implements Insertable<Product> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'count': serializer.toJson<int>(count),
-      'price': serializer.toJson<double>(price),
       'category': serializer.toJson<String>(category),
     };
   }
 
-  Product copyWith({
-    int? id,
-    String? name,
-    int? count,
-    double? price,
-    String? category,
-  }) => Product(
-    id: id ?? this.id,
-    name: name ?? this.name,
-    count: count ?? this.count,
-    price: price ?? this.price,
-    category: category ?? this.category,
-  );
+  Product copyWith({int? id, String? name, int? count, String? category}) =>
+      Product(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        count: count ?? this.count,
+        category: category ?? this.category,
+      );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       count: data.count.present ? data.count.value : this.count,
-      price: data.price.present ? data.price.value : this.price,
       category: data.category.present ? data.category.value : this.category,
     );
   }
@@ -242,14 +208,13 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('count: $count, ')
-          ..write('price: $price, ')
           ..write('category: $category')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, count, price, category);
+  int get hashCode => Object.hash(id, name, count, category);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -257,7 +222,6 @@ class Product extends DataClass implements Insertable<Product> {
           other.id == this.id &&
           other.name == this.name &&
           other.count == this.count &&
-          other.price == this.price &&
           other.category == this.category);
 }
 
@@ -265,37 +229,31 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<int> id;
   final Value<String> name;
   final Value<int> count;
-  final Value<double> price;
   final Value<String> category;
   const ProductsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.count = const Value.absent(),
-    this.price = const Value.absent(),
     this.category = const Value.absent(),
   });
   ProductsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     required int count,
-    required double price,
     required String category,
   }) : name = Value(name),
        count = Value(count),
-       price = Value(price),
        category = Value(category);
   static Insertable<Product> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<int>? count,
-    Expression<double>? price,
     Expression<String>? category,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (count != null) 'count': count,
-      if (price != null) 'price': price,
       if (category != null) 'category': category,
     });
   }
@@ -304,14 +262,12 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Value<int>? id,
     Value<String>? name,
     Value<int>? count,
-    Value<double>? price,
     Value<String>? category,
   }) {
     return ProductsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       count: count ?? this.count,
-      price: price ?? this.price,
       category: category ?? this.category,
     );
   }
@@ -328,9 +284,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (count.present) {
       map['count'] = Variable<int>(count.value);
     }
-    if (price.present) {
-      map['price'] = Variable<double>(price.value);
-    }
     if (category.present) {
       map['category'] = Variable<String>(category.value);
     }
@@ -343,7 +296,6 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('count: $count, ')
-          ..write('price: $price, ')
           ..write('category: $category')
           ..write(')'))
         .toString();
@@ -366,7 +318,6 @@ typedef $$ProductsTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required int count,
-      required double price,
       required String category,
     });
 typedef $$ProductsTableUpdateCompanionBuilder =
@@ -374,7 +325,6 @@ typedef $$ProductsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<int> count,
-      Value<double> price,
       Value<String> category,
     });
 
@@ -399,11 +349,6 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<int> get count => $composableBuilder(
     column: $table.count,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<double> get price => $composableBuilder(
-    column: $table.price,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -437,11 +382,6 @@ class $$ProductsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get price => $composableBuilder(
-    column: $table.price,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get category => $composableBuilder(
     column: $table.category,
     builder: (column) => ColumnOrderings(column),
@@ -465,9 +405,6 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<int> get count =>
       $composableBuilder(column: $table.count, builder: (column) => column);
-
-  GeneratedColumn<double> get price =>
-      $composableBuilder(column: $table.price, builder: (column) => column);
 
   GeneratedColumn<String> get category =>
       $composableBuilder(column: $table.category, builder: (column) => column);
@@ -504,13 +441,11 @@ class $$ProductsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> count = const Value.absent(),
-                Value<double> price = const Value.absent(),
                 Value<String> category = const Value.absent(),
               }) => ProductsCompanion(
                 id: id,
                 name: name,
                 count: count,
-                price: price,
                 category: category,
               ),
           createCompanionCallback:
@@ -518,13 +453,11 @@ class $$ProductsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required int count,
-                required double price,
                 required String category,
               }) => ProductsCompanion.insert(
                 id: id,
                 name: name,
                 count: count,
-                price: price,
                 category: category,
               ),
           withReferenceMapper: (p0) => p0

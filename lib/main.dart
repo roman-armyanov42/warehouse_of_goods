@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:warehouse_of_goods_application/features/product/data/repositories/product_repository.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/usecases/add_product.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/usecases/delete_product.dart';
+
+import 'package:warehouse_of_goods_application/features/product/domain/usecases/update_product.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/bloc/product_bloc.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/pages/product_screen.dart';
 
@@ -18,13 +20,22 @@ void main() {
   final repository = ProductRepositoryImpl(db);
 
   // UseCases
+  final updateUseCase = UpdateProduct(repository);
   final addUseCase = AddProduct(repository);
   final deleteUseCase = DeleteProduct(repository);
 
-  runApp(MyApp(addUseCase: addUseCase, deleteUseCase: deleteUseCase, dao: dao));
+  runApp(
+    MyApp(
+      addUseCase: addUseCase,
+      deleteUseCase: deleteUseCase,
+      dao: dao,
+      updateUseCase: updateUseCase,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
+  final UpdateProduct updateUseCase;
   final AddProduct addUseCase;
   final DeleteProduct deleteUseCase;
   final productDao dao;
@@ -34,6 +45,7 @@ class MyApp extends StatelessWidget {
     required this.addUseCase,
     required this.deleteUseCase,
     required this.dao,
+    required this.updateUseCase,
   });
 
   @override
@@ -43,7 +55,8 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       home: BlocProvider(
         create: (_) =>
-            ProductCubit(addUseCase, deleteUseCase, dao)..loadProducts(),
+            ProductCubit(addUseCase, deleteUseCase, dao, updateUseCase)
+              ..loadProducts(),
         child: const ProductScreen(),
       ),
     );
