@@ -14,10 +14,10 @@ import 'features/product/data/datasources/remote/database/products_dao.dart';
 void main() {
   // Инициализация базы данных
   final db = AppDatabase();
-  final dao = productDao(db);
+  final dao = ProductDao(db);
 
   // Репозиторий
-  final repository = ProductRepositoryImpl(db);
+  final repository = ProductRepositoryImpl(db, dao);
 
   // UseCases
   final updateUseCase = UpdateProduct(repository);
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
   final UpdateProduct updateUseCase;
   final AddProduct addUseCase;
   final DeleteProduct deleteUseCase;
-  final productDao dao;
+  final ProductDao dao;
 
   const MyApp({
     super.key,

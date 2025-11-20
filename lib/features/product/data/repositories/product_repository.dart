@@ -1,12 +1,14 @@
 import 'package:drift/drift.dart';
 import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/database.dart';
+import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/products_dao.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/entities/product.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/repositories/product_repository.dart';
 
 class ProductRepositoryImpl implements ProductRepository {
   final AppDatabase db;
+  final ProductDao dao;
 
-  ProductRepositoryImpl(this.db);
+  ProductRepositoryImpl(this.db, this.dao);
 
   @override
   Future<void> addProduct(ProductEntity product) async {
@@ -21,6 +23,12 @@ class ProductRepositoryImpl implements ProductRepository {
             // другие поля
           ),
         );
+  }
+
+  @override
+  Future<bool> existsByName(String name) async {
+    final exists = await dao.existsByName(name);
+    return exists;
   }
 
   @override

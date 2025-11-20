@@ -1,10 +1,13 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:warehouse_of_goods_application/features/product/domain/entities/product.dart';
+import 'package:warehouse_of_goods_application/features/product/domain/repositories/product_repository.dart';
 
 class ProductDialog extends StatefulWidget {
   final ProductEntity? product;
-
-  const ProductDialog({super.key, this.product});
+  final ProductRepository repository;
+  const ProductDialog({super.key, this.product, required this.repository});
 
   @override
   State<ProductDialog> createState() => _ProductDialogState();
@@ -12,17 +15,20 @@ class ProductDialog extends StatefulWidget {
 
 class _ProductDialogState extends State<ProductDialog> {
   final _formKey = GlobalKey<FormState>();
-
+  String? _nameError;
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
   final _quantityController = TextEditingController();
+  bool isNameEdited = false;
+  bool isExists = false;
+  bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
-
     // Если редактирование — заполняем поля
     if (widget.product != null) {
+      isEditing = true;
       _nameController.text = widget.product!.name;
       _categoryController.text = widget.product!.category;
       _quantityController.text = widget.product!.count.toString();
@@ -63,12 +69,19 @@ class _ProductDialogState extends State<ProductDialog> {
               /// Название
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                onChanged: (value) {
+                  log("Текст изменен: $value");
+
+                  isNameEdited = true;
+                },
+                decoration: InputDecoration(
                   labelText: "Название товара *",
-                  border: OutlineInputBorder(),
+                  errorText: _nameError,
+                  border: const OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                    value == null || value.isEmpty ? "Введите название" : null,
+                validator: (value) => value == null || value.isEmpty
+                    ? "Введите название"
+                    : _nameError,
               ),
               const SizedBox(height: 12),
 
@@ -88,9 +101,9 @@ class _ProductDialogState extends State<ProductDialog> {
               TextFormField(
                 controller: _quantityController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: "Количество *",
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -115,7 +128,24 @@ class _ProductDialogState extends State<ProductDialog> {
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      final name = _nameController.text;
+                      if (name.isEmpty) return;
+
+                      if (!isEditing || isNameEdited) {
+                        isExists = await widget.repository.existsByName(name);
+                      }
+
+                      log(isExists.toString());
+                      if (isExists) {
+                        setState(
+                          () => _nameError =
+                              "Товар с таким именем уже существует",
+                        );
+                        return;
+                      } else {
+                        setState(() => _nameError = null);
+                      }
                       if (_formKey.currentState!.validate()) {
                         Navigator.pop(context, {
                           'name': _nameController.text,

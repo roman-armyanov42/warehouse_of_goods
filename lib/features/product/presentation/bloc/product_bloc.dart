@@ -13,7 +13,7 @@ class ProductCubit extends Cubit<ProductState> {
   final AddProduct addProductUseCase;
   final DeleteProduct deleteProductUseCase;
   final UpdateProduct updateProductUseCase;
-  final productDao dao;
+  final ProductDao dao;
 
   // Список продуктов в Cubit
   List<ProductEntity> _products = [];
@@ -103,7 +103,7 @@ class ProductCubit extends Cubit<ProductState> {
     emit(ProductLoaded(List.from(_products)));
   }
 
-  Future<void> loadProductsFromDb(productDao dao) async {
+  Future<void> loadProductsFromDb(ProductDao dao) async {
     emit(ProductLoading());
     final result = await dao.getAllCharacters();
     result.fold((failure) => emit(ProductError(failure.message)), (products) {

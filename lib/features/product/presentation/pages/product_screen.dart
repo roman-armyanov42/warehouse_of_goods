@@ -1,17 +1,20 @@
+import 'dart:developer';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/database.dart';
 import 'package:warehouse_of_goods_application/features/product/data/datasources/remote/database/products_dao.dart';
+import 'package:warehouse_of_goods_application/features/product/data/repositories/product_repository.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/bloc/product_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/widgets/product_dialog_widget.dart';
 import 'package:warehouse_of_goods_application/features/product/presentation/widgets/product_list_widget.dart';
 
 import '../bloc/product_state.dart';
-import '../../domain/entities/product.dart';
 
 final db = AppDatabase();
-final dao = productDao(db);
+final dao = ProductDao(db);
+final repository = ProductRepositoryImpl(db, dao);
 
 class ProductScreen extends StatelessWidget {
   const ProductScreen({super.key});
@@ -50,12 +53,15 @@ class ProductScreen extends StatelessWidget {
                   onDelete: () {
                     cubit.deleteProduct(product.id);
 
-                    print("Был удален объект:" + product.name);
+                    log('Был удален объект:${product.name}');
                   },
                   onEdit: () async {
                     final result = await showDialog(
                       context: context,
-                      builder: (_) => ProductDialog(product: product),
+                      builder: (_) => ProductDialog(
+                        product: product,
+                        repository: repository,
+                      ),
                     );
 
                     if (result != null) {
@@ -83,7 +89,8 @@ class ProductScreen extends StatelessWidget {
         onPressed: () async {
           final result = await showDialog(
             context: context,
-            builder: (context) => const ProductDialog(product: null),
+            builder: (context) =>
+                ProductDialog(product: null, repository: repository),
           );
 
           if (result == null) return;
